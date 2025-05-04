@@ -151,10 +151,10 @@ private:
     {
         if(!node->prev_.expired() && node->next_) 
         {
-            auto prev = node->prev_.lock(); // Convert weak_ptr to shared_ptr
+            auto prev = node->prev_.lock(); // use lock() to get the shared_ptr
             prev->next_ = node->next_;
             node->next_->prev_ = prev;
-            node->next_ = nullptr; // Sever link completely
+            node->next_ = nullptr; // Break the node from the list
         }
     }
 
@@ -163,7 +163,7 @@ private:
     {
         node->next_ = dummyTail_;
         node->prev_ = dummyTail_->prev_;
-        dummyTail_->prev_.lock()->next_ = node; // Convert weak_ptr to shared_ptr
+        dummyTail_->prev_.lock()->next_ = node; // use lock() to get the shared_ptr
         dummyTail_->prev_ = node;
     }
 
@@ -185,10 +185,10 @@ private:
 
 // LRU optimization: LRU‑k variant for better filtering of ephemeral entries
 template<typename Key, typename Value>
-class KLruKCache : public LruCache<Key, Value>
+class LruKCache : public LruCache<Key, Value>
 {
 public:
-    KLruKCache(int capacity, int historyCapacity, int k)
+    LruKCache(int capacity, int historyCapacity, int k)
         : LruCache<Key, Value>(capacity) // Call base constructor
         , historyList_(std::make_unique<LruCache<Key, size_t>>(historyCapacity))
         , k_(k)
@@ -274,10 +274,10 @@ private:
 
 // LRU optimization: sharding to improve performance under high concurrency
 template<typename Key, typename Value>
-class KHashLruCaches
+class HashLruCaches
 {
 public:
-    KHashLruCaches(size_t capacity, int sliceNum)
+    HashLruCaches(size_t capacity, int sliceNum)
         : capacity_(capacity)
         , sliceNum_(sliceNum > 0 ? sliceNum : std::thread::hardware_concurrency())
     {
